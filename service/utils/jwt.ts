@@ -13,7 +13,7 @@ const refreshSecret = process.env.REFRESH_SECRET;
 const accessExp = process.env.ACCESS_EXP;
 const refreshExp = process.env.REFRESH_EXP;
 
-export async function generateTokens(payload: JWTPayload) {
+export async function generateTokens(payload: JWTPayload, audience: string) {
   if (!accessSecret) {
     throw new Error("Access secret is required to generate access token!");
   }
@@ -21,6 +21,9 @@ export async function generateTokens(payload: JWTPayload) {
   const accessKey = createSecretKey(accessSecret, "utf-8");
   const accessToken = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
+    .setSubject(payload.id)
+    .setIssuer("auth-service")
+    .setAudience(audience)
     .setIssuedAt()
     .setExpirationTime(accessExp || "15m")
     .sign(accessKey);
@@ -32,16 +35,20 @@ export async function generateTokens(payload: JWTPayload) {
   const refreshKey = createSecretKey(refreshSecret, "utf-8");
   const refreshToken = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
+    .setSubject(payload.id)
+    .setIssuer("auth-service")
+    .setAudience("auth-service")
     .setIssuedAt()
-    .setExpirationTime(refreshExp || "15m")
+    .setExpirationTime(refreshExp || "7d")
     .sign(refreshKey);
 
   return { accessToken, refreshToken };
 }
 
-export async function verfiyToken(
+export async function verifyToken(
   token: string,
   tokenType: "access" | "refresh",
+  audience?: string,
 ): Promise<JWTPayload> {
   if (!accessSecret || !refreshSecret) {
     throw new Error(
@@ -53,6 +60,16 @@ export async function verfiyToken(
     tokenType === "access" ? accessSecret : refreshSecret,
     "utf-8",
   );
-  const { payload } = await jwtVerify(token, secret);
+  const { payload } = await jwtVerify(token, secret, {
+    issuer: "auth-service",
+    audience: tokenType === "access" ? audience : "auth-service",
+  });
+
   return payload as JWTPayload;
+}
+
+export function refreshTokenExpiry() {
+  const day = new Date();
+  day.setDate(day.getDate() + 7);
+  return day;
 }

@@ -3,23 +3,28 @@ import type { NewUser } from "../database/schema";
 import { createUser, getUserByEmail } from "../database/queries/users";
 import { hashPassword } from "../utils/hash";
 import { respondWithJSON } from "../utils/json";
+import { UserForbiddenError } from "../utils/error";
+import {
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from "../utils/validation";
 
 export async function register(req: BunRequest) {
-  const { email, username, password } = (await req.json()) as NewUser;
-  if (!email || !username || !password) {
-    return new Error("");
-  }
+  const body = (await req.json()) as NewUser;
+  const email = validateEmail(body.email);
+  const username = validateUsername(body.username);
+  const password = validatePassword(body.password);
 
   const userExists = await getUserByEmail(email);
   if (userExists) {
-    return new Error("");
+    throw new UserForbiddenError("User already exists!");
   }
 
   const hashedPassword = await hashPassword(password);
-  const user = await createUser({ email, username, password: hashedPassword });
-  if (!user) {
-    return new Error("");
-  }
+  await createUser({ email, username, password: hashedPassword });
 
-  return respondWithJSON(201, user);
+  return respondWithJSON(201, {
+    message: "Registred Successfully. You can login!",
+  });
 }

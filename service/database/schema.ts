@@ -1,12 +1,5 @@
 import { relations } from "drizzle-orm";
-import {
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 // Tables
 export const users = pgTable("users", {
@@ -21,26 +14,22 @@ export const users = pgTable("users", {
     .$onUpdate(() => new Date()),
 });
 
-export const refreshTokens = pgTable(
-  "refresh_tokens",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
-    refreshToken: text("refresh_token").notNull(),
-    userAgent: text("user_agent"),
-    ipAddress: varchar("ip_address", { length: 45 }),
-    expiresAt: timestamp("expires_at"),
-    revokedAt: timestamp("revoked_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .notNull()
-      .$onUpdate(() => new Date()),
-  },
-  (table) => [uniqueIndex("refresh_token_user_unique").on(table.userId)],
-);
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 
 // Relations
 export const userRelations = relations(users, ({ many }) => ({

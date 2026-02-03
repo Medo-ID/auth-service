@@ -1,20 +1,30 @@
-import { serve } from "bun";
-import { errorHandlingMiddleware } from "./middleware";
+import { serve, type BunRequest } from "bun";
+import { errorHandlingMiddleware, isAuth } from "./middleware";
+import { register } from "./routes/register";
+import { login } from "./routes/login";
+import { refresh } from "./routes/refresh";
+import { logout } from "./routes/logout";
+import { logoutAll } from "./routes/logoutAll";
+import { cleanupRefreshTokens } from "./database/queries/refreshTokens";
 
-serve({
+const server = serve({
   port: 3000,
   routes: {
-    "/auth/register": {
-      POST: () => new Response(),
+    "/": {
+      GET: (req: BunRequest) => {
+        console.log(server.requestIP(req)?.address || "null");
+        return new Response("Service is working");
+      },
     },
-    "/auth/login": {
-      POST: () => new Response(),
-    },
-    "/auth/refresh_token": {
-      POST: () => new Response(),
-    },
+    "/auth/register": { POST: register },
+    "/auth/login": { POST: login },
+    "/auth/refresh": { POST: isAuth(refresh) },
+    "/auth/logout": { POST: isAuth(logout) },
+    "/auth/logout-all": { POST: isAuth(logoutAll) },
   },
   error(err) {
     return errorHandlingMiddleware(err);
   },
 });
+
+setInterval(cleanupRefreshTokens, 1000 * 60 * 60 * 24);
