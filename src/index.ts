@@ -10,11 +10,9 @@ import { cleanupRefreshTokens } from "./database/queries/refreshTokens";
 const server = serve({
   port: 3000,
   routes: {
-    "/": {
-      GET: (req: BunRequest) => {
-        console.log(server.requestIP(req)?.address || "null");
-        return new Response("Service is working");
-      },
+    "/": (req: BunRequest) => {
+      console.log(server.requestIP(req)?.address || "Unknown IP Address.");
+      return new Response("Auth Service is Working...\n");
     },
     "/auth/register": { POST: register },
     "/auth/login": { POST: login },
@@ -28,3 +26,4 @@ const server = serve({
 });
 
 setInterval(cleanupRefreshTokens, 1000 * 60 * 60 * 24);
+console.log(`Listening on ${server.url}`);
