@@ -1,28 +1,42 @@
-import type { BunRequest, Server } from "bun";
-import { verifyToken, type JWTPayload } from "../utils/jwt";
+import { verifyToken } from "../utils/jwt";
 import { parseCookies } from "../utils/cookie";
 import { UserNotAuthenticatedError } from "../utils/error";
 import { getValidRefreshToken } from "../database/queries/refreshTokens";
+import type { AuthRequest, RefreshRequest, RouteHandler } from "./types";
 
-export type RouteHandler = (
-  req: BunRequest,
-  server: Server<undefined>,
-) => Promise<Response> | Response;
+// 1. General Auth Middleware (Access Token)
+// Use this for profile updates, fetching data, etc.
+export function isAuth(handler: RouteHandler): RouteHandler {
+  return async (req) => {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
-export interface AuthContext {
-  payload: JWTPayload;
-  refreshTokenId: string;
+    if (!token) {
+      throw new UserNotAuthenticatedError("Missing or malformed access token");
+    }
+
+    try {
+      const payload = await verifyToken(token, "access", "auth-service");
+      (req as AuthRequest).session = payload;
+      return handler(req);
+    } catch (err) {
+      console.error("Auth middleware error", err);
+      throw new UserNotAuthenticatedError("Invalid or expired access token");
+    }
+  };
 }
 
-export type AuthenticatedRequest = BunRequest & AuthContext;
-
-export function isAuth(handler: RouteHandler): RouteHandler {
-  return async (req, server) => {
+// 2. Refresh Token Middleware
+// Use THIS wrapper specifically on your POST /refresh and POST /logout routes
+export function requireRefreshToken(handler: RouteHandler): RouteHandler {
+  return async (req) => {
     const cookie = parseCookies(req);
     const refresh = cookie["refresh_token"];
 
     if (!refresh) {
-      throw new UserNotAuthenticatedError("You must be authenticated");
+      throw new UserNotAuthenticatedError("No refresh token provided");
     }
 
     const payload = await verifyToken(refresh, "refresh");
@@ -30,14 +44,15 @@ export function isAuth(handler: RouteHandler): RouteHandler {
       throw new UserNotAuthenticatedError("Invalid refresh token");
     }
 
-    const token = await getValidRefreshToken(payload.id, refresh);
+    // Heavy DB check happens ONLY here
+    const token = await getValidRefreshToken(payload.sub, refresh);
     if (!token) {
       throw new UserNotAuthenticatedError("Refresh token revoked or expired");
     }
 
-    (req as AuthenticatedRequest).payload = payload;
-    (req as AuthenticatedRequest).refreshTokenId = token.id;
+    (req as RefreshRequest).session = payload;
+    (req as RefreshRequest).refreshTokenId = token.id;
 
-    return handler(req, server);
+    return handler(req);
   };
 }

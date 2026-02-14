@@ -1,5 +1,4 @@
 import { serve, type BunRequest } from "bun";
-import { isAuth } from "./middlewares/auth";
 import { errorHandlingMiddleware } from "./middlewares/error";
 import { register } from "./routes/register";
 import { login } from "./routes/login";
@@ -7,7 +6,7 @@ import { refresh } from "./routes/refresh";
 import { logout } from "./routes/logout";
 import { logoutAll } from "./routes/logoutAll";
 import { cleanupRefreshTokens } from "./database/queries/refreshTokens";
-import { privatePipe, publicPipe } from "./middlewares/compose";
+import { privatePipe, publicPipe, refreshPipe } from "./middlewares/compose";
 import { healthCheck, root } from "./routes/health";
 
 const server = serve({
@@ -19,9 +18,11 @@ const server = serve({
     // Auth
     "/auth/register": { POST: publicPipe(register) },
     "/auth/login": { POST: publicPipe(login) },
-    "/auth/refresh": { POST: privatePipe(refresh) },
-    "/auth/logout": { POST: publicPipe(logout) },
-    "/auth/logout-all": { POST: publicPipe(logoutAll) },
+    // Session Management (Uses Cookie + DB check)
+    "/auth/refresh": { POST: refreshPipe(refresh) },
+    "/auth/logout": { POST: refreshPipe(logout) },
+    // Standard Auth (Uses Bearer Access Token)
+    "/auth/logout-all": { POST: privatePipe(logoutAll) },
   },
   error(err) {
     return errorHandlingMiddleware(err);

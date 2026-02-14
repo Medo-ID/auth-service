@@ -2,7 +2,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { createSecretKey } from "node:crypto";
 
 export interface JWTPayload {
-  id: string;
+  sub: string;
   email: string;
   [key: string]: unknown;
 }
@@ -13,7 +13,7 @@ const refreshSecret = process.env.REFRESH_SECRET;
 const accessExp = process.env.ACCESS_EXP;
 const refreshExp = process.env.REFRESH_EXP;
 
-export async function generateTokens(payload: JWTPayload, audience: string) {
+export async function generateTokens(payload: JWTPayload, audience: string[]) {
   if (!accessSecret) {
     throw new Error("Access secret is required to generate access token!");
   }
@@ -21,7 +21,7 @@ export async function generateTokens(payload: JWTPayload, audience: string) {
   const accessKey = createSecretKey(accessSecret, "utf-8");
   const accessToken = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setSubject(payload.id)
+    .setSubject(payload.sub)
     .setIssuer("auth-service")
     .setAudience(audience)
     .setIssuedAt()
@@ -35,7 +35,7 @@ export async function generateTokens(payload: JWTPayload, audience: string) {
   const refreshKey = createSecretKey(refreshSecret, "utf-8");
   const refreshToken = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setSubject(payload.id)
+    .setSubject(payload.sub)
     .setIssuer("auth-service")
     .setAudience("auth-service")
     .setIssuedAt()

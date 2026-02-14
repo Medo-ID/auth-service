@@ -13,7 +13,7 @@ type LoginData = {
   password: string;
 };
 
-export async function login(req: BunRequest, server: Server<undefined>) {
+export async function login(req: BunRequest) {
   const body = (await req.json()) as LoginData;
   const email = validateEmail(body.email);
   const password = validatePassword(body.password);
@@ -35,14 +35,14 @@ export async function login(req: BunRequest, server: Server<undefined>) {
   const expiresAt = refreshTokenExpiry();
   const { accessToken, refreshToken } = await generateTokens(
     {
-      id: user.id,
+      sub: user.id,
       email: user.email,
     },
-    "auth-service",
+    ["auth-service", "files-service"],
   );
 
   const userAgent = req.headers.get("user-agent") || null;
-  const ipAddress = server.requestIP(req)?.address || null;
+  const ipAddress = req.headers.get("x-forwarded-for") || "127.0.0.1";
   await insertRefreshToken({
     userId: user.id,
     refreshToken,

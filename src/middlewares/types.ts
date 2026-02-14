@@ -6,3 +6,8 @@ export type AuthRequest = BunRequest & { session: JWTPayload };
 export type RouteHandlerWithAuth = (
   req: AuthRequest,
 ) => Promise<Response> | Response;
+
+export type RefreshRequest = BunRequest & {
+  session: JWTPayload;
+  refreshTokenId: string;
+};

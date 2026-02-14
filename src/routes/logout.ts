@@ -2,11 +2,12 @@ import type { BunRequest } from "bun";
 import { serializeCookie } from "../utils/cookie";
 import { respondWithJSON } from "../utils/json";
 import { revokeRefreshToken } from "../database/queries/refreshTokens";
-import type { AuthenticatedRequest } from "../middleware";
+import type { RefreshRequest } from "../middlewares/types";
 
 export async function logout(req: BunRequest) {
-  const { refreshTokenId } = req as AuthenticatedRequest;
+  const { refreshTokenId } = req as RefreshRequest;
 
+  // Revoke the exact token used to call this endpoint
   await revokeRefreshToken(refreshTokenId);
 
   const clearCookie = serializeCookie("refresh_token", "", {
