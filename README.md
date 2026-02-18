@@ -63,9 +63,9 @@ src/
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) v1.0+
-- PostgreSQL 12+
-- Node.js 18+ (for `node:crypto` module)
+- [Bun](https://bun.sh) v1.3+
+- PostgreSQL v17
+- Node.js v24+ (for `node:crypto` module)
 
 ## Installation
 
@@ -82,13 +82,7 @@ src/
    bun install
    ```
 
-3. **Set up environment variables:**
-
-   ```bash
-   cp .env.example .env
-   ```
-
-4. **Configure database:**
+3. **Configure database:**
    ```bash
    bun db:push
    ```
@@ -161,8 +155,6 @@ The service uses:
 
 - **Access Token** - Short-lived JWT sent in response body
 - **Refresh Token** - Long-lived JWT stored in HttpOnly cookie
-
-Protected endpoints require a valid refresh token in the `refresh_token` cookie.
 
 ---
 
@@ -479,28 +471,6 @@ export const privatePipe = compose(
 ```
 
 The `compose` function creates a pipeline that executes middlewares in reverse order.
-
-### Extending with Custom Middlewares
-
-```typescript
-// src/middlewares/custom.ts
-import type { RouteHandler } from "./types";
-
-export function myMiddleware(handler: RouteHandler): RouteHandler {
-  return async (req, server) => {
-    console.log("Before handler");
-    const response = await handler(req, server);
-    console.log("After handler");
-    return response;
-  };
-}
-```
-
-Add to compose:
-
-```typescript
-export const customPipe = compose(cors, logger, myMiddleware);
-```
 
 ## Extending the Service
 
