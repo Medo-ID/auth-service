@@ -99,8 +99,8 @@ DATABASE_URL=postgresql://user:password@localhost:5432/auth_db
 ACCESS_SECRET=your-access-token-secret-min-32-chars
 REFRESH_SECRET=your-refresh-token-secret-min-32-chars
 
-# Token Expiration (default: 15m for access, 7d for refresh)
-ACCESS_EXP=15m
+# Token Expiration (default: 2m for access, 7d for refresh)
+ACCESS_EXP=2m
 REFRESH_EXP=7d
 
 # Environment

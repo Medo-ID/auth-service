@@ -1,4 +1,4 @@
-import type { BunRequest, Server } from "bun";
+import type { BunRequest } from "bun";
 import { BadRequestError } from "../utils/error";
 import { getUserByEmail, getUserById } from "../database/queries/users";
 import { verifyPassword } from "../utils/hash";
@@ -37,6 +37,7 @@ export async function login(req: BunRequest) {
     {
       sub: user.id,
       email: user.email,
+      username: user.username,
     },
     ["auth-service", "files-service"],
   );

@@ -2,10 +2,10 @@ import type { BunRequest } from "bun";
 import { serializeCookie } from "../utils/cookie";
 import { revokeAllRefreshTokens } from "../database/queries/refreshTokens";
 import { respondWithJSON } from "../utils/json";
-import type { AuthRequest } from "../middlewares/types";
+import type { RefreshRequest } from "../middlewares/types";
 
 export async function logoutAll(req: BunRequest) {
-  const { session } = req as AuthRequest;
+  const { session } = req as RefreshRequest;
 
   await revokeAllRefreshTokens(session.sub);
 

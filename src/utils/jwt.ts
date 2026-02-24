@@ -4,6 +4,7 @@ import { createSecretKey } from "node:crypto";
 export interface JWTPayload {
   sub: string;
   email: string;
+  username: string;
   [key: string]: unknown;
 }
 
@@ -25,7 +26,7 @@ export async function generateTokens(payload: JWTPayload, audience: string[]) {
     .setIssuer("auth-service")
     .setAudience(audience)
     .setIssuedAt()
-    .setExpirationTime(accessExp || "15m")
+    .setExpirationTime(accessExp || "2m")
     .sign(accessKey);
 
   if (!refreshSecret) {

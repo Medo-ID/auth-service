@@ -12,7 +12,7 @@ export async function getUserById(id: string) {
     .select({
       id: users.id,
       email: users.email,
-      usersname: users.username,
+      username: users.username,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     })
