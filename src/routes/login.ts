@@ -16,7 +16,7 @@ type LoginData = {
 export async function login(req: BunRequest) {
   const body = (await req.json()) as LoginData;
   const email = validateEmail(body.email);
-  const password = validatePassword(body.password);
+  const password = body.password;
 
   const existsUser = await getUserByEmail(email);
   if (!existsUser) {
