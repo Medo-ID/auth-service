@@ -6,7 +6,7 @@ import { generateTokens, refreshTokenExpiry } from "../utils/jwt";
 import { insertRefreshToken } from "../database/queries/refreshTokens";
 import { respondWithJSON } from "../utils/json";
 import { cookies, serializeCookie } from "../utils/cookie";
-import { validateEmail, validatePassword } from "../utils/validation";
+import { validateEmail } from "../utils/validation";
 
 type LoginData = {
   email: string;

@@ -26,6 +26,8 @@ export function logger(handler: RouteHandler): RouteHandler {
       return response;
     } catch (err) {
       const duration = (performance.now() - start).toFixed(2);
+
+      // 1. Keep your error logging
       console.error(
         JSON.stringify({
           time: new Date().toISOString(),
@@ -37,10 +39,7 @@ export function logger(handler: RouteHandler): RouteHandler {
         }),
       );
 
-      return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      throw err;
     }
   };
 }
