@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun --hot src/index.ts",
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
